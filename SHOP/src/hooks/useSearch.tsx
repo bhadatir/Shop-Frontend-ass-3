@@ -1,4 +1,19 @@
+import axios from "axios";
 import {useState,useEffect} from "react";
+
+export type product = {
+    id: number;
+    title: string;
+    price: number;
+    category: string;
+    stock: number;
+    thumbnail: string;
+}
+
+export const searchProduct = async (products: string): Promise<product[]> => {
+  const { data } = await axios.get<product[]>(`https://dummyjson.com/products/search?q=${products}`);
+  return data;
+};
 
 export function useSearch(products: string){
 
@@ -12,16 +27,11 @@ export function useSearch(products: string){
             return;
         }
         setLoading(true);
-            fetch(`https://dummyjson.com/products/search?q=${products}`)
-            .then((res)=>{
-                if(!res.ok)
-                {
-                    throw new Error("Failed to fetch products");
-                }
-                return res.json();
+            axios.get(`https://dummyjson.com/products/search?q=${products}`, {
+                params: {}
             })
-            .then((data)=>{
-                setFilteredProducts(data.products);
+            .then((res)=>{
+                setFilteredProducts(res.data.products);
                 setLoading(false);
             })
             .catch((error)=>{

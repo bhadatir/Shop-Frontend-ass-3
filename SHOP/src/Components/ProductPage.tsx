@@ -1,11 +1,20 @@
-import { useProductByID } from "../hooks/useProductByID"
+import { useQuery } from "@tanstack/react-query";
+import { searchProductById, useProductByID, type product } from "../hooks/useProductByID"
 
 type ProductPageProps = {
     id: number;
 }
 
 export default function Productpage({id}: ProductPageProps){
+
     const { ProductsByID, loading, error } = useProductByID(id);
+    
+    const { data : proByid, error : proByidError, isLoading : proByidIsLoading, isError : proByidIsError } = useQuery<product, Error>({
+            queryKey: ["categoriesData"],
+            queryFn: () => searchProductById( id ), 
+        });
+        console.log("Categories from useQuery:", proByid);
+        
     return (
         <div className="product-detail">
             {loading ? (

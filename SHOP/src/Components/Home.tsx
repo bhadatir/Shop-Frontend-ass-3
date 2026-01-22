@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import ShopNavbar from './ShopNavbar'
 import ProductDetail from './ProductDetail'
-import { useSearch } from '../hooks/useSearch';
-import { useProduct } from '../hooks/useProduct';
-import { useCategories } from '../hooks/useCategories';
-import { useSearchByCat } from '../hooks/useSearchByCat';
+import { searchProduct, useSearch, type product } from '../hooks/useSearch';
+import { fetchAllProduct, useProduct } from '../hooks/useProduct';
+import { searchProductByCat, useSearchByCat } from '../hooks/useSearchByCat';
+import { useQuery } from "@tanstack/react-query";
+import { fetchProductsCat } from "../hooks/useCategories";
 
 export default function Home() {
 
     const [searchInput,setSearchInput] = useState('');
     const [activeSearchTerm, setActiveSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('');
-    // const [isLoading, setIsLoading] = useState(false);
 
     const { products } = useProduct();
     const { filteredProducts } = useSearch(activeSearchTerm);
-    const { categories } = useCategories();
     const { filteredProductsByCat } = useSearchByCat(activeCategory);
 
     function handleSearch(){
@@ -30,15 +29,43 @@ export default function Home() {
         setSearchInput('');
     }
 
+    const { data, error, isLoading, isError } = useQuery<string[], Error>({
+        queryKey: ["productCategories"],
+        queryFn: fetchProductsCat, 
+    });
+
+    const { data : pro, error : proError, isLoading : proIsLoading, isError : proIsError } = useQuery<product[], Error>({
+        queryKey: ["product"],
+        queryFn: () => searchProduct( searchInput ), 
+    });
+    console.log("Products from useQuery:", pro);
+
+    const { data : allProduct, error : allProductError, isLoading : allProductIsLoading, isError : allProductIsError } = useQuery<product[], Error>({
+        queryKey: ["allProduct"],
+        queryFn: fetchAllProduct, 
+    });
+    console.log("All Products from useQuery:", allProduct);
+
+    const { data: proByCat, error: proByCatError, isLoading: proByCatIsLoading, isError: proByCatIsError } = useQuery<product[], Error>({
+        queryKey: ["productsByCategory"],
+        queryFn: () => searchProductByCat( activeCategory ), 
+    });
+    console.log("Products By Category from useQuery:", proByCat);
+
     let contenetToDisplay = [];
    
     if(activeSearchTerm){
-        contenetToDisplay = filteredProducts;
+        contenetToDisplay = pro || [];
     }else if(activeCategory){
         contenetToDisplay = filteredProductsByCat;
     }else{
         contenetToDisplay = products;
     }
+
+    console.log("Content to Display:", contenetToDisplay);
+
+    if (isLoading) return <p>Loading users...</p>;
+    if (isError) return <p>Error: {error.message}</p>;
 
     return (
         <div>
@@ -57,7 +84,7 @@ export default function Home() {
                 <div className="ml-4 mr-20">
                     <select className="p-2 border" onChange={handelCenterChange}>
                         <option value="">All</option>
-                        {categories.map((category: string) => (
+                        {Array.isArray(data) && data.map((category: string) => (
                             <option key={category} value={category}>
                                 {category}
                             </option>
@@ -90,3 +117,4 @@ export default function Home() {
         </div>
     );
 }
+

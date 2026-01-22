@@ -1,4 +1,19 @@
+import axios from "axios";
 import {useState,useEffect} from "react";
+
+export type product = {
+    id: number;
+    title: string;
+    price: number;
+    category: string;
+    stock: number;
+    thumbnail: string;
+}
+
+export const fetchAllProduct = async (): Promise<product[]> => {
+  const { data } = await axios.get<product[]>('https://dummyjson.com/products');
+  return data;
+};
 
 export function useProduct()
 {
@@ -7,16 +22,11 @@ export function useProduct()
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch('https://dummyjson.com/products')
-        .then((res)=>{
-            if(!res.ok)
-            {
-                throw new Error("Failed to fetch products");
-            }
-            return res.json();
+        axios.get('https://dummyjson.com/products', {
+            params: {}
         })
-        .then((data)=>{
-            setProducts(data.products);
+        .then((res)=>{
+            setProducts(res.data.products);
             setLoading(false);
         })
         .catch((error)=>{
