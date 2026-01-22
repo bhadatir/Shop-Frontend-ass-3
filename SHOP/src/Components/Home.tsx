@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import ShopNavbar from './ShopNavbar'
 import ProductDetail from './ProductDetail'
-import { searchProduct, useSearch, type product } from '../hooks/useSearch';
-import { fetchAllProduct, useProduct } from '../hooks/useProduct';
-import { searchProductByCat, useSearchByCat } from '../hooks/useSearchByCat';
-import { useQuery } from "@tanstack/react-query";
-import { fetchProductsCat } from "../hooks/useCategories";
+import { useAllProduct, useCategories, useProductSearch, type Product } from '../hooks/useProducts';
 
 export default function Home() {
 
@@ -13,64 +9,48 @@ export default function Home() {
     const [activeSearchTerm, setActiveSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('');
 
-    const { products } = useProduct();
-    const { filteredProducts } = useSearch(activeSearchTerm);
-    const { filteredProductsByCat } = useSearchByCat(activeCategory);
+    const{ data: allProducts, isLoading: isLoadingAll, error: errorAll } = useAllProduct();
+    const{ data: categories } = useCategories();
+
+    const{ data: searchResult, isLoading: isLoadingSearch } = useProductSearch(activeSearchTerm);
+    const{ data: categoryResult, isLoading: isLoadingCategory } = useProductSearch(activeCategory);
 
     function handleSearch(){
         setActiveSearchTerm(searchInput);
         setActiveCategory('');
     }
 
-    function handelCenterChange(e: React.ChangeEvent<HTMLSelectElement>){
+    function handelCategoryChange(e: React.ChangeEvent<HTMLSelectElement>){
         const selected = e.target.value;
         setActiveCategory(selected);
         setActiveSearchTerm('');
         setSearchInput('');
     }
 
-    const { data, error, isLoading, isError } = useQuery<string[], Error>({
-        queryKey: ["productCategories"],
-        queryFn: fetchProductsCat, 
-    });
-
-    const { data : pro, error : proError, isLoading : proIsLoading, isError : proIsError } = useQuery<product[], Error>({
-        queryKey: ["product"],
-        queryFn: () => searchProduct( searchInput ), 
-    });
-    console.log("Products from useQuery:", pro);
-
-    const { data : allProduct, error : allProductError, isLoading : allProductIsLoading, isError : allProductIsError } = useQuery<product[], Error>({
-        queryKey: ["allProduct"],
-        queryFn: fetchAllProduct, 
-    });
-    console.log("All Products from useQuery:", allProduct);
-
-    const { data: proByCat, error: proByCatError, isLoading: proByCatIsLoading, isError: proByCatIsError } = useQuery<product[], Error>({
-        queryKey: ["productsByCategory"],
-        queryFn: () => searchProductByCat( activeCategory ), 
-    });
-    console.log("Products By Category from useQuery:", proByCat);
-
-    let contenetToDisplay = [];
+    let contenetToDisplay: Product[] = [];
+    let isLoading = isLoadingAll;
+    let error = errorAll;
    
     if(activeSearchTerm){
-        contenetToDisplay = pro || [];
+        contenetToDisplay = searchResult || [];
+        isLoading = isLoadingSearch;
+        error = null;
     }else if(activeCategory){
-        contenetToDisplay = filteredProductsByCat;
+        contenetToDisplay = categoryResult || [];
+        isLoading = isLoadingCategory;
+        error = null;
     }else{
-        contenetToDisplay = products;
+        contenetToDisplay = allProducts || [];
     }
 
-    console.log("Content to Display:", contenetToDisplay);
-
-    if (isLoading) return <p>Loading users...</p>;
-    if (isError) return <p>Error: {error.message}</p>;
+    if (isLoading) return <p>Loading products...</p>;
+    if (error) return <p>Error: {error.message}</p>;
 
     return (
         <div>
             <ShopNavbar />
-            <div className="mt-25 ml-10 flex p-1 w-full ">
+
+            <div className="mx-auto px-4 pt-24 flex">
                 <input
                     type="text"
                     placeholder="Search products..."
@@ -81,10 +61,10 @@ export default function Home() {
                 <button onClick={handleSearch} className="text-black">
                     Search
                 </button>
-                <div className="ml-4 mr-20">
-                    <select className="p-2 border" onChange={handelCenterChange}>
+                <div className="p-2 ml-4 border">
+                    <select className="p-1" onChange={handelCategoryChange} value={activeCategory}>
                         <option value="">All</option>
-                        {Array.isArray(data) && data.map((category: string) => (
+                        {categories?.map((category) => (
                             <option key={category} value={category}>
                                 {category}
                             </option>

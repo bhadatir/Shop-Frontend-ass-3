@@ -1,9 +1,7 @@
-import Productpage from "./ProductPage";
-import {useState} from "react";
-import {useTheme} from "./ThemeContextProvider"
 import type { AppDispatch } from "../Redux/Store";
 import { useDispatch } from "react-redux";
 import { addToCart } from '../Redux/CartSlice';
+import { useNavigate } from "react-router-dom";
 
 type ProductDetailProps = {
     id: number;
@@ -15,26 +13,24 @@ type ProductDetailProps = {
 }
 
 function ProductDetail({ id, name, price, category, stock, img }:ProductDetailProps) {    
-    const [productPage, setProductPage] = useState<number | null>(null);
-
-    const { theme } = useTheme();
+    const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
     
     function handelProduct(id: number){
         console.log("Product ID:", id);
-        setProductPage(id);
+        navigate(`/products/${id}`);
     }
-
-    const dispatch = useDispatch<AppDispatch>();
 
     const handleAdd = (id: number, name: string, price: number) => {
         dispatch(addToCart({ id, name, price, quantity: 1 }));
+        alert(`${name} added to cart!`);
     };
 
     return (
         <>
         <div className="product-detail p-4 border m-4" >
             <img src={img} alt={name} key={id} onClick={() => handelProduct(id)}/>
-            <h2 className={theme === 'dark' ? 'text-white bg-gray-400' : 'text-black'}>{name}</h2>
+            <h2>{name}</h2>
             <p>{category}</p>
             <p>Price: ${price.toFixed(2)}</p>
             <div>
@@ -51,12 +47,6 @@ function ProductDetail({ id, name, price, category, stock, img }:ProductDetailPr
                 Add to Cart
             </button>
         </div>
-        {productPage && <div className="fixed inset-0 bg-transparent flex items-center justify-center">
-                <div className="bg-gray-200 p-8 w-196">
-                    <button onClick={() => setProductPage(null)} className="float-right text-gray-600 mb-5">X</button>
-                    <Productpage id={productPage} />
-                </div>
-        </div>}
         </>
     );
 };

@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { type RootState, type AppDispatch } from '../Redux/store';
+import { type RootState, type AppDispatch } from '../Redux/Store';
 import { removeFromCart, clearCart } from '../Redux/CartSlice';
 
 export default function Cart(){
@@ -8,7 +8,7 @@ export default function Cart(){
     const dispatch = useDispatch<AppDispatch>();
 
     return(
-        <div className="p-4">
+        <div className="p-4 ml-130">
             <h2 className="text-xl font-bold mb-4">Shopping Cart</h2>
             {cartItems.length === 0 ? (
             <p>Your cart is empty.</p>
@@ -23,12 +23,9 @@ export default function Cart(){
                     >   
                     Remove
                     </button>
-                    <button
+                    {/* <button
                     onClick={() => dispatch(incInCart(item.id))}
-                    className="ml-4 text-red-500"
-                    >   
-                    +
-                    </button>
+                    className="ml-4 text-red-500"> + </button> */}
                 </li>
                 ))}
             </ul>

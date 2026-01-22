@@ -4,6 +4,7 @@ import About from "../Components/About"
 import Product from "../Components/Product"
 import Cart from "../Components/Cart"
 import App from "../App";
+import ShopNavbar from "../Components/ShopNavbar";
 
 export const router = createBrowserRouter([
     {
@@ -13,13 +14,17 @@ export const router = createBrowserRouter([
             { index: true, element: <Home /> },
             { path: "products", element: <Home /> },
             { path: "products/:id", element: <Product /> }, 
-            // { path: "product/:id/customize" element: < /> }
             { path: "cart", element: <Cart /> },
         ],
     },
     {
         path:"/about",
-        element: <About />,
+        element: (
+            <>
+                <ShopNavbar />
+                <About />
+            </>
+        ),
     },
     {
         path:"/*",
